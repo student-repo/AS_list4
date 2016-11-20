@@ -111,6 +111,9 @@ The only signals that can be sent to process ID 1, the init process, are those f
 
 Task 2B
 
+The only signals that can be sent to process ID 1, the init process, are those for which init has explicitly installed signal handlers. This is done to assure the system is not brought down accidentally.
+
+
  if you want get all sinals do
 
 $ /bin/bash
