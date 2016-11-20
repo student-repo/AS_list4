@@ -136,6 +136,7 @@ int main()
 		sprintf(a, "sudo kill -%d 1",i);
 		printf("%s\n",a);
 		system(a);
+		sleep(0.5);
 	}
 return 0;
 
@@ -151,6 +152,74 @@ $ sudo chmod +s zad2B
  
 $ ./zad2B
 
-and run this to check if something happen (nothing)
+you can see that $ sudo kill -2 1 (reboot computer)
 
 $ ps -eo pid,cmd,start,etime
+
+
+Task 2C
+
+$ cat > zad2C1.c
+#include<stdio.h>
+
+int main(int argc, char **argv)
+{
+        setuid(0);
+
+        int i;
+        char a[50] = {0};
+	sprintf(a, "sudo kill -USR1 %s",argv[1]);
+        printf("%s\n",a);
+
+        for(i=1;i<=200;i++){
+                system(a);
+        }
+	printf("Jesli sygnaly sa kolejkowane to w programie ktory przechwytywal sygnaly powinno byc 200 odebranych sygnalow\n");
+return 0;
+
+}
+
+$ cat > zad2C2.c
+#include<stdio.h>
+#include<signal.h>
+
+int s=1;
+
+void myhandle(int mysignal){
+        printf("myhandle with signal %d\n", mysignal);
+        printf("signal nr %d\n", s);
+        s++;
+}
+
+int main()
+{
+	printf("pid: %d\n",getpid());
+        setuid(0);
+        signal(SIGUSR1, myhandle);
+	while(1){
+		;
+	}
+return 0;
+
+}
+
+
+$ gcc zad2C1.c -o zad2C1
+
+$ sudo chown root:root zad2C1
+ 
+$ sudo chmod 4755 zad2C1
+
+$ sudo chmod +s zad2C1
+
+and 
+
+
+$ gcc zad2C2.c -o zad2C2
+
+$ ./zad2C2
+
+this return pid <- copy this pid
+
+$ ./zad2C1 pid (paste pid as argument)
+

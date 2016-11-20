@@ -9,6 +9,7 @@ int main()
                 sprintf(a, "sudo kill -%d 1",i);
                 printf("%s\n",a);
                 system(a);
+		sleep(0.5);
         }
 return 0;
 
