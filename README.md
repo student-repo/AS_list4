@@ -159,6 +159,24 @@ $ ps -eo pid,cmd,start,etime
 
 Task 2C
 
+What happens is the following:
+
+First signal received, namely SIGUSR1, handler is called and is running
+Second signal received, since handler from nr1 is still running, the signal nr2 gets pending and blocked.
+Third signal received, since handler from nr1 is still running, the signal 3 gets discarded.
+Fourth, fifth...etc signal of the same type as the signal nr1 are discarded.
+Once signal handler is done with signal nr1, it will process signal nr2, and then signal handler will process the SIGUSR2.
+
+Basically, pending signals of the same type are not queued, but discarded. And no, there is no easy way to "burst" send signals that way. One always assumes that there can be several signals that are discarded, and tries to let the handler do the work of cleaning and finding out what to do (such as reaping children, if all children die at the same time).
+
+(http://stackoverflow.com/questions/5285414/signal-queuing-in-c)
+
+
+
+
+
+
+
 $ cat > zad2C1.c
 #include<stdio.h>
 
