@@ -3,6 +3,6 @@
 int main(){
 	printf("Open bash...");
 	setuid(0);
-	system("sudo /bin/bash");
+	system("/bin/bash");
 	return 0;
 }

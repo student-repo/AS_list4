@@ -8,7 +8,7 @@ $ cat > zad1.c
 int main(){
 	printf("Open bash...");
 	setuid(0);
-	system("sudo /bin/bash");
+	system("/bin/bash");
 	return 0;
 }
 
@@ -24,7 +24,7 @@ $ ./zad1
 
 //////////////////////////////////////////
 
-how test? -> 
+how test? ->
 sudo chown root:root /path/to/application
 sudo chmod 700 /path/to/application
 
@@ -46,7 +46,7 @@ void myhandle(int mysignal){
 }
 
 int main(int argc, char *argv[]){
-	
+
 	int i = 0;
 
 	if(signal(SIGTERM, myhandle) == SIG_ERR){
@@ -70,7 +70,7 @@ int main(int argc, char *argv[]){
 		i++;
 		sleep(1);
 	}
-	
+
 	return 0;
 }
 
@@ -88,7 +88,7 @@ $ kill -SIGTERM pid_of_zad2
 
 $ kill -SIGKILL pid_of_zad2    or    $ kill -9 pid_of_zad2
 
-or 
+or
 
 $ kill -SIGSTOP pid_of_zad2
 
@@ -98,7 +98,7 @@ We see that in the above code, we have tried to handle a user defined signal USR
 
 Task 2B
 
-System ignored commands 
+System ignored commands
 
 $ sudo kill -SIGKILL 1
 
@@ -143,13 +143,13 @@ return 0;
 }
 
 $ gcc zad2B.c -o zad2B
- 
+
 $ sudo chown root:root zad2B
 
 $ sudo chmod 4755 zad2B
 
 $ sudo chmod +s zad2B
- 
+
 $ ./zad2B
 
 you can see that $ sudo kill -2 1 (reboot computer)
@@ -225,12 +225,12 @@ return 0;
 $ gcc zad2C1.c -o zad2C1
 
 $ sudo chown root:root zad2C1
- 
+
 $ sudo chmod 4755 zad2C1
 
 $ sudo chmod +s zad2C1
 
-and 
+and
 
 
 $ gcc zad2C2.c -o zad2C2
@@ -240,4 +240,3 @@ $ ./zad2C2
 this return pid <- copy this pid
 
 $ ./zad2C1 pid (paste pid as argument)
-
