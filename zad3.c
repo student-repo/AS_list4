@@ -3,49 +3,13 @@
 #include <string.h>
 #include<signal.h>
 
-int wordsAmount(const char sentence[ ])
-{
-    int counted = 0; // result
-    if(sentence==NULL){
-      return 0;
-    }
+int wordsAmount(const char sentence[ ]);
 
-    // state:
-    const char* it = sentence;
-    int inword = 0;
+void  execute(char **argv,int wait);
 
-    do switch(*it) {
-        case '\0':
-        case ' ': case '\t': case '\n': case '\r': // TODO others?
-            if (inword) { inword = 0; counted++; }
-            break;
-        default: inword = 1;
-    } while(*it++);
+void myhandle(int mysignal);
 
-    return counted;
-}
-
-
-void  execute(char **argv)
-{
-     pid_t  pid;
-     int    status;
-
-     if ((pid = fork()) < 0) {     /* fork a child process           */
-          printf("*** ERROR: forking child process failed\n");
-          exit(1);
-     }
-     else if (pid == 0) {
-          execvp(*argv, argv);
-          perror("exec: error");
-
-     }
-}
-
-void myhandle(int mysignal){
-	printf("myhandle with signal %d\n", mysignal);
-
-}
+char *removeEtFromCommand(char *command, int runInBackground);
 
 int main(void)
 {
@@ -62,42 +26,103 @@ char *line = NULL;
 size_t size;
 printf("lsh shell $ ");
 while (getline(&line, &size, stdin)) {
-	// printf("%s",line);
-//	printf("%s",line[0]);
-// if(line==EOF){
-//   exit(1);
-// }
 
+printf("lsh shell $ ");
 
+if(feof(stdin)){
+  exit(1);
+}
 line=strtok(line, "\n");
 
+int runInBackground = etAtTheEnd(line);
 
-	int a =wordsAmount(line);
+line = removeEtFromCommand(line, runInBackground);
 
-    int i = 0;
-    char *p = strtok (line, " ");
-    char *array[a+1];
+int a =wordsAmount(line);
 
+int i = 0;
+char *p = strtok (line, " ");
+char *commandArray[a+1];
 
-    while (p != NULL)
-    {
-        array[i++] = p;
+    while (p != NULL){
+        commandArray[i++] = p;
         p = strtok (NULL, " ");
     }
 
-    if(*array != NULL && strcmp("exit",array[0]) == 0 ){
+    if(*commandArray != NULL && strcmp("exit",commandArray[0]) == 0 ){
       exit(1);
     }
 
-    // for (i = 0; i < a; ++i)
-    //        printf("%s\n", array[i]);
-
-	char *aa[] = {"ls", NULL};
-  execute(array);
-
-  printf("lsh shell $ ");
-
+  execute(commandArray, runInBackground);
 }
 
   return 0;
+}
+
+int wordsAmount(const char sentence[ ])
+{
+    int counted = 0;
+    if(sentence==NULL){
+      return 0;
+    }
+
+    const char* it = sentence;
+    int inword = 0;
+
+    do switch(*it) {
+        case '\0':
+        case ' ': case '\t': case '\n': case '\r': // TODO others?
+            if (inword) { inword = 0; counted++; }
+            break;
+        default: inword = 1;
+    } while(*it++);
+
+    return counted;
+}
+
+void  execute(char **argv, int runInBackground)
+{
+     pid_t  pid;
+     int    status;
+     int emptyArray = strlen(argv);
+
+     if ((pid = fork()) < 0) {     /* fork a child process           */
+          printf("*** ERROR: forking child process failed\n");
+          exit(1);
+     }
+     else if (pid == 0) {
+          execvp(*argv, argv);
+          perror("exec: error");
+          exit(0);
+
+     }
+     else if (emptyArray != 0 && runInBackground == 0){
+       waitpid(pid, NULL, 0);
+     }
+}
+
+void myhandle(int mysignal){
+	printf("myhandle with signal %d\n", mysignal);
+
+}
+
+int etAtTheEnd(const char str[]){
+  if(str==NULL){
+    return 0;
+  }
+    return (str && *str && str[strlen(str) - 1] == '&') ? 1 : 0;
+}
+
+char *removeEtFromCommand(char *command, int runInBackground){
+  if(command==NULL){
+    return command;
+  }
+
+  if(runInBackground == 0){
+    return command;
+  }
+  command[strlen(command) - 1] = '\0';
+  return command;
+
+
 }
