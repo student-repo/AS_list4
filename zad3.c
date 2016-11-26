@@ -18,6 +18,8 @@ void rundest(int pfd[], char **cmd2);
 
 char *removeBeginSpaces(char *str1);
 
+void fillTableCommand(char *tableCommand[], char *stringCommand, int a);
+
 int main(void)
 {
 
@@ -64,6 +66,7 @@ pipeCmd2[a]='\0';
     int ii = 0;
     char *pp = strtok (pipeCmd1, " ");
     char *command1Array[aa+1];
+    // fillTableCommand(command1Array, pipeCmd1, aa);
 
         while (pp != NULL){
             command1Array[ii++] = pp;
@@ -73,14 +76,15 @@ pipeCmd2[a]='\0';
         if(*command1Array != NULL && strcmp("exit",command1Array[0]) == 0 ){
           exit(1);
         }
-        // int l;
-        // for(l=0;l<aa;l++)
-        // printf("%s\n",command1Array[l] );
+        int l;
+        for(l=0;l<aa;l++)
+        printf("%s\n",command1Array[l] );
 
         int aaa =wordsAmount(pipeCmd2);
         int iii = 0;
         char *ppp = strtok (pipeCmd2, " ");
         char *command2Array[aaa+1];
+        // fillTableCommand(command2Array, pipeCmd2, aaa);
 
             while (ppp != NULL){
                 command2Array[iii++] = ppp;
@@ -91,9 +95,9 @@ pipeCmd2[a]='\0';
               exit(1);
             }
 
-// printf("\n" );
-//             for(l=0;l<aaa;l++)
-//             printf("%s\n",command2Array[l] );
+printf("\n" );
+            for(l=0;l<aaa;l++)
+            printf("%s\n",command2Array[l] );
 int pid, status;
 int fd[2];
 
@@ -115,14 +119,8 @@ else{
 
   int a =wordsAmount(line);
 
-  int i = 0;
-  char *p = strtok (line, " ");
   char *commandArray[a+1];
-
-      while (p != NULL){
-          commandArray[i++] = p;
-          p = strtok (NULL, " ");
-      }
+  fillTableCommand(commandArray, line, a);
 
       if(*commandArray != NULL && strcmp("exit",commandArray[0]) == 0 ){
         exit(1);
@@ -258,4 +256,16 @@ char *removeBeginSpaces(char *str1)
     while (*str2==' ') str2++;
     if (str2!=str1) memmove(str1,str2,strlen(str2)+1);
     return str1;
+}
+
+void fillTableCommand(char *tableCommand[], char *stringCommand, int a){
+  int i = 0;
+  char *p = strtok (stringCommand, " ");
+
+
+      while (p != NULL){
+          tableCommand[i++] = p;
+          p = strtok (NULL, " ");
+      }
+      tableCommand[a]=NULL;
 }
