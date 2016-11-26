@@ -97,8 +97,8 @@ else if (line != NULL && strpbrk(line, ">") != 0){
   inputfile=removeBeginSpaces(inputfile);
   outputCmd[a]='\0';
 
-  printf("%s\n",inputfile );
-  printf("%s\n",outputCmd );
+  // printf("%s\n",inputfile );
+  // printf("%s\n",outputCmd );
 
   int n =wordsAmount(outputCmd);
   char *command3Array[n+1];
@@ -123,6 +123,7 @@ else if (line != NULL && strpbrk(line, ">") != 0){
        perror("exec: error");
        exit(0);
   }
+  waitpid(pidd, NULL, 0);
   dup2(saved_stdout, 1);
 close(saved_stdout);
 
@@ -232,7 +233,8 @@ rundest(int pfd[], char **cmm2)	/* run the second part of the pipeline, cmd2 */
        dup2(pfd[0], 0);	/* this end of the pipe becomes the standard input */
    		close(pfd[1]);		/* this process doesn't need the other end */
    		execvp(cmm2[0], cmm2);	/* run the command */
-   		perror(cmm2[0]);	/* it failed! */
+   		perror(cmm2[0]);/* it failed! */
+      waitpid(pid, NULL, 0);
        exit(0);
 
   }
@@ -256,6 +258,7 @@ runsource(int pfd[], char **cmm1)	/* run the first part of the pipeline, cmd1 */
    close(pfd[0]); 		/* this process don't need the other end */
    execvp(cmm1[0], cmm1);	/* run the command */
    perror(cmm1[0]);	/* it failed! */
+   waitpid(pid, NULL, 0);
        exit(0);
 
 
