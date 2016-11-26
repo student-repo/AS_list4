@@ -3,6 +3,8 @@
 #include <string.h>
 #include<signal.h>
 #include <stdlib.h>
+#include <fcntl.h>
+
 
 int wordsAmount(const char sentence[ ]);
 
@@ -51,7 +53,7 @@ else if (line != NULL && strpbrk(line, "|") != 0){
   const char pipeChar = '|';
   strcpy(pipeCmd1, line);
   strcpy(pipeCmd2, line);
-  printf("%s\n", pipeCmd2 );
+  // printf("%s\n", pipeCmd2 );
 
   pipeCmd1 = strchr(pipeCmd1, pipeChar);
 memmove(pipeCmd1, pipeCmd1+1, strlen(pipeCmd1));
@@ -78,6 +80,51 @@ int fd[2];
   rundest(fd, command1Array);
 
   close(fd[0]); close(fd[1]);
+
+}
+else if (line != NULL && strpbrk(line, ">") != 0){
+  char *inputfile = (char *) malloc((int)strlen(line));
+  char *outputCmd = (char *) malloc((int)strlen(line));
+  int saved_stdout;
+  const char outputChar = '>';
+  strcpy(inputfile, line);
+  strcpy(outputCmd, line);
+  saved_stdout = dup(1);
+
+  inputfile = strchr(inputfile, outputChar);
+  memmove(inputfile, inputfile+1, strlen(inputfile));
+  int a = strlen(outputCmd) - strlen(inputfile) - 1;
+  inputfile=removeBeginSpaces(inputfile);
+  outputCmd[a]='\0';
+
+  printf("%s\n",inputfile );
+  printf("%s\n",outputCmd );
+
+  int n =wordsAmount(outputCmd);
+  char *command3Array[n+1];
+  fillTableCommand(command3Array, outputCmd, n);
+
+  int newfd;	/* new file descriptor */
+  if ((newfd = open(inputfile, O_CREAT|O_TRUNC|O_WRONLY, 0644)) < 0) {
+		perror(inputfile);	/* open failed */
+		exit(1);
+	}
+
+  dup2(newfd, 1);
+
+  pid_t  pidd;
+
+  if ((pidd = fork()) < 0) {     /* fork a child process           */
+       printf("*** ERROR: forking child process failed\n");
+       exit(1);
+  }
+  else if (pidd == 0) {
+       execvp(*command3Array, command3Array);
+       perror("exec: error");
+       exit(0);
+  }
+  dup2(saved_stdout, 1);
+close(saved_stdout);
 
 }
 else{
