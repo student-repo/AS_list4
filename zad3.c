@@ -81,8 +81,56 @@ int fd[2];
 
   close(fd[0]); close(fd[1]);
 
+}///////////////////////////////////////////////////////////////////////
+else if (line != NULL && strstr(line, "2>") != NULL){
+  char *errFile = (char *) malloc((int)strlen(line));
+  char *cmd2 = (char *) malloc((int)strlen(line));
+  int saved_stdout1;
+  const char *errChar = "2>";
+  strcpy(errFile, line);
+  strcpy(cmd2, line);
+  saved_stdout1 = dup(1);
+
+  errFile = strstr(errFile, errChar);
+  memmove(errFile, errFile+2, strlen(errFile));
+  int b = strlen(cmd2) - strlen(errFile) - 2;
+  errFile=removeBeginSpaces(errFile);
+  cmd2[b]='\0';
+
+  // printf("%s\n",errFile );
+  // printf("%s\n",cmd2 );
+
+
+  int m =wordsAmount(cmd2);
+  char *command4Array[m+1];
+  fillTableCommand(command4Array, cmd2, m);
+
+  int newfd1;	/* new file descriptor */
+  if ((newfd1 = open(errFile, O_CREAT|O_TRUNC|O_WRONLY, 0644)) < 0) {
+		perror(errFile);	/* open failed */
+		exit(1);
+	}
+  // printf("!%d!\n",newfd );
+
+  dup2(newfd1, 2);
+
+  pid_t  piddd;
+
+  if ((piddd = fork()) < 0) {     /* fork a child process           */
+       printf("*** ERROR: forking child process failed\n");
+       exit(1);
+  }
+  else if (piddd == 0) {
+       execvp(*command4Array, command4Array);
+       perror("exec: error");
+       exit(0);
+  }
+  waitpid(piddd, NULL, 0);
+  dup2(saved_stdout1, 1);
+close(saved_stdout1);
+
 }
-else if (line != NULL && strpbrk(line, ">") != 0){
+else if (line != NULL && strpbrk(line, ">") != 0){/////////////////////////////////////////////////
   char *inputfile = (char *) malloc((int)strlen(line));
   char *outputCmd = (char *) malloc((int)strlen(line));
   int saved_stdout;
@@ -109,6 +157,7 @@ else if (line != NULL && strpbrk(line, ">") != 0){
 		perror(inputfile);	/* open failed */
 		exit(1);
 	}
+  // printf("!%d!\n",newfd );
 
   dup2(newfd, 1);
 
