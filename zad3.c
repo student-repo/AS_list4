@@ -42,8 +42,10 @@ if(feof(stdin)){
   exit(1);
 }
 line=strtok(line, "\n");
-
-if (line != NULL && strpbrk(line, "|") != 0){
+if(line == NULL){
+  ;
+}
+else if (line != NULL && strpbrk(line, "|") != 0){
   char *pipeCmd1 = (char *) malloc((int)strlen(line));
   char *pipeCmd2 = (char *) malloc((int)strlen(line));
   const char pipeChar = '|';
@@ -56,60 +58,26 @@ memmove(pipeCmd1, pipeCmd1+1, strlen(pipeCmd1));
 int a = strlen(pipeCmd2) - strlen(pipeCmd1) - 1;
 pipeCmd1=removeBeginSpaces(pipeCmd1);
 pipeCmd2[a]='\0';
-  //
-  // printf("%s\n", pipeCmd1 );
-  // printf("%s\n", pipeCmd2 );
-
-
 
     int aa =wordsAmount(pipeCmd1);
-    int ii = 0;
-    char *pp = strtok (pipeCmd1, " ");
     char *command1Array[aa+1];
-    // fillTableCommand(command1Array, pipeCmd1, aa);
+    fillTableCommand(command1Array, pipeCmd1, aa);
 
-        while (pp != NULL){
-            command1Array[ii++] = pp;
-            pp = strtok (NULL, " ");
-        }
-
-        if(*command1Array != NULL && strcmp("exit",command1Array[0]) == 0 ){
-          exit(1);
-        }
-        int l;
-        for(l=0;l<aa;l++)
-        printf("%s\n",command1Array[l] );
 
         int aaa =wordsAmount(pipeCmd2);
-        int iii = 0;
-        char *ppp = strtok (pipeCmd2, " ");
+
         char *command2Array[aaa+1];
-        // fillTableCommand(command2Array, pipeCmd2, aaa);
+        fillTableCommand(command2Array, pipeCmd2, aaa);
 
-            while (ppp != NULL){
-                command2Array[iii++] = ppp;
-                ppp = strtok (NULL, " ");
-            }
-
-            if(*command2Array != NULL && strcmp("exit",command2Array[0]) == 0 ){
-              exit(1);
-            }
-
-printf("\n" );
-            for(l=0;l<aaa;l++)
-            printf("%s\n",command2Array[l] );
 int pid, status;
 int fd[2];
 
   pipe(fd);
-  runsource(fd, command1Array);
-	rundest(fd, command2Array);
+
+  runsource(fd, command2Array);
+  rundest(fd, command1Array);
 
   close(fd[0]); close(fd[1]);
-  while ((pid = wait(&status)) != -1)	/* pick up all the dead children */
-		fprintf(stderr, "process %d exits with %d\n", pid, WEXITSTATUS(status));
-	// exit(0);
-
 
 }
 else{
@@ -206,47 +174,45 @@ char *removeEtFromCommand(char *command, int runInBackground){
 void
 rundest(int pfd[], char **cmm2)	/* run the second part of the pipeline, cmd2 */
 {
-	int pid;
+  pid_t  pid;
+  int    status;
 
-  // printf("%s\n",cmm2);
-	switch (pid = fork()) {
+  if ((pid = fork()) < 0) {     /* fork a child process           */
+       printf("*** ERROR: forking child process failed\n");
+       exit(1);
+  }
+  else if (pid == 0) {
+       dup2(pfd[0], 0);	/* this end of the pipe becomes the standard input */
+   		close(pfd[1]);		/* this process doesn't need the other end */
+   		execvp(cmm2[0], cmm2);	/* run the command */
+   		perror(cmm2[0]);	/* it failed! */
+       exit(0);
 
-	case 0: /* child */
-		dup2(pfd[0], 0);	/* this end of the pipe becomes the standard input */
-		close(pfd[1]);		/* this process doesn't need the other end */
-		execvp(cmm2[0], cmm2);	/* run the command */
-		perror(cmm2[0]);	/* it failed! */
+  }
 
-	default: /* parent does nothing */
-		break;
 
-	case -1:
-		perror("fork");
-		exit(1);
-	}
 }
 
 
 void
 runsource(int pfd[], char **cmm1)	/* run the first part of the pipeline, cmd1 */
 {
-	int pid;	/* we don't use the process ID here, but you may wnat to print it for debugging */
-// printf("%s\n",cmm1 );
-	switch (pid = fork()) {
+  pid_t  pid;
+  int    status;
 
-	case 0: /* child */
-		dup2(pfd[1], 1);	/* this end of the pipe becomes the standard output */
-		close(pfd[0]); 		/* this process don't need the other end */
-		execvp(cmm1[0], cmm1);	/* run the command */
-		perror(cmm1[0]);	/* it failed! */
+  if ((pid = fork()) < 0) {     /* fork a child process           */
+       printf("*** ERROR: forking child process failed\n");
+       exit(1);
+  }
+  else if (pid == 0) {
+    dup2(pfd[1], 1);	/* this end of the pipe becomes the standard output */
+   close(pfd[0]); 		/* this process don't need the other end */
+   execvp(cmm1[0], cmm1);	/* run the command */
+   perror(cmm1[0]);	/* it failed! */
+       exit(0);
 
-	default: /* parent does nothing */
-		break;
 
-	case -1:
-		perror("fork");
-		exit(1);
-	}
+  }
 }
 
 char *removeBeginSpaces(char *str1)
