@@ -74,13 +74,13 @@ int main(int argc, char *argv[]){
 	return 0;
 }
 
-$  gcc zad2.c -o zad2
+$  gcc zad2a.c -o zad2a
 
-$ ./zad2
+$ ./zad2a
 
 And in another terminal
 
-$ ps -aux | grep zad2
+$ ps -aux | grep zad2a
 
 $ kill -USR1 pid_of_zad2
 
